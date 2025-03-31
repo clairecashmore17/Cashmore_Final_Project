@@ -45,22 +45,38 @@ window.onload = function init() {
         vec2(-.25, .25),
     ];
 
+    var window_bar_vertices = [
+
+        vec2(-.25,.25),
+        vec2(.25,.25)
+    ];
     // Set aside uniform to store the matrix
     matrixLocation = gl.getUniformLocation(program, 'u_matrix');
     fColorLocation = gl.getUniformLocation(program, "fColor");
-    //Create identity matrix H1
-    var matrix1 = mat4();
+    
+    
+    /*********************** Create Window ***********************/
+    // Degine vertices for window
+    var window_vertices = [
+        vec2(-.25, .25),
+        vec2(.25, .25),
+        vec2(.25, -.5),
+        vec2(-.25, -.5),
+        vec2(-.25, .25),
+    ];
 
-    // translate the matrix to upper right
-   // matrix1 = translate(-.5, -0.5, 0);
-    // use mult to then rotate after the translation
-    //matrix1 = mult(matrix1, rotate(-45, 0, 0, 1));
-    // console.log(matrix);
+    var window_bar_vertices = [
+
+        vec2(-.25,.25),
+        vec2(.25,.25)
+    ];
+    var innerFrameMatrix = mat4();
+
 
     // Create a buffer object, initialize it, and associate it with the
     //load into the GPU
-    var bufferID = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, bufferID);
+    var bufferIDInnerMatrix = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, bufferIDInnerMatrix);
     gl.bufferData(gl.ARRAY_BUFFER, flatten(window_vertices), gl.STATIC_DRAW);
 
 
@@ -71,48 +87,42 @@ window.onload = function init() {
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     // Render H1
-    render(matrix1);
+    render(innerFrameMatrix,window_vertices.length,"line_strip");
 
 
-     //Create identity matrix H2
-    var matrix2 = mat4();
-    // translate the matrix to upper right
-    matrix2 = translate(.5, 0.5, 0);
-    // use mult to then rotate after the translation
-    matrix2 = mult(matrix2, rotate(-45, 0, 0, 1));
+     //Create outer frame
+    var outerFrameMatrix = mat4();
+    // scale the matrix to upper right
+    outerFrameMatrix = scalem(1.25, 1.25,1);
+   
 
     // Create second buffer for 2nd H
-    var bufferID2 = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, bufferID2);
-    gl.bufferData(gl.ARRAY_BUFFER, flatten(h1_vertices), gl.STATIC_DRAW);
+    var bufferOuterFrame = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, bufferOuterFrame);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(window_vertices), gl.STATIC_DRAW);
 
 
     //Associate our shade vars again, but for 2nd H?...
     gl.vertexAttribPointer(vPosition, 2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vPosition);
 
-
-
-
     // Render H2
-    render(matrix2);
+    render(outerFrameMatrix,window_vertices.length,"line_strip");
 
 
-
-    //Create identity matrix H3
-    var matrix3 = mat4();
+    //Create Window lines
+    var windowHorizontal = mat4();
 
     // translate the matrix 
-    matrix3 = translate(.5, -0.5, 0);
-    // use mult to then rotate after the translation
-    matrix3 = mult(matrix3, rotate(45, 0, 0, 1));
+    windowHorizontal = scalem(1,0, 0);
+    windowHorizontal = translate(0,-.3,0);
 
 
     // Create a buffer object, initialize it, and associate it with the
     //load into the GPU
-    var bufferID3 = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, bufferID3);
-    gl.bufferData(gl.ARRAY_BUFFER, flatten(h1_vertices), gl.STATIC_DRAW);
+    var horizontalWindowBufffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, horizontalWindowBufffer);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(window_bar_vertices), gl.STATIC_DRAW);
 
 
     // Associate out shader variables with our data buffer
@@ -121,23 +131,25 @@ window.onload = function init() {
     gl.enableVertexAttribArray(vPosition);
 
     // Render H3
-    render(matrix3);
+    render(windowHorizontal,window_bar_vertices.length,"line_strip");
 
 
-    //Create identity matrix H4
-    var matrix4 = mat4();
+    //Create verticalWindowLine
+    //var windowVertical = mat4();
 
     // translate the matrix 
-    matrix4 = translate(-.5, 0.5, 0);
+   // windowHorizontal = translate(-.5, 0.5, 0);
     // use mult to then rotate after the translation
-    matrix4 = mult(matrix4, rotate(45, 0, 0, 1));
-
+    // windowHorizontal = scalem(4,0, 0);
+    windowHorizontal =  rotate(90, 0, 0, 1);
+    windowHorizontal = mult(windowHorizontal, scalem(1.5,0,0));
+    windowHorizontal = mult(windowHorizontal,translate(-.08, -.25, 0));
 
     // Create a buffer object, initialize it, and associate it with the
     //load into the GPU
-    var bufferID4 = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, bufferID4);
-    gl.bufferData(gl.ARRAY_BUFFER, flatten(h1_vertices), gl.STATIC_DRAW);
+    var verticalWindowBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, verticalWindowBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(window_bar_vertices), gl.STATIC_DRAW);
 
 
     // Associate out shader variables with our data buffer
@@ -146,16 +158,75 @@ window.onload = function init() {
     gl.enableVertexAttribArray(vPosition);
 
     // Render H4
-    render(matrix4);
+    render(windowHorizontal,window_bar_vertices.length,"line_strip");
+
+
+    /***************** END WINDOW CODE*****************/
+
+
+
+    /***************** START TABLE CODE*****************/
+    var table_vertices = [
+        vec2(0, .25),
+        vec2(.25, .25),
+        vec2(.25, .15),
+        vec2(0, .15),
+        vec2(0, .25),
+    ];
+
+    //Create tabletop
+    var tableTopMatrix = mat4();
+
+    // translate the matrix 
+    tableTopMatrix = translate(0.5, -.5, 0);
+    // use mult to then rotate after the translation
+    // windowHorizontal = scalem(4,0, 0);
+   // windowHorizontal =  rotate(90, 0, 0, 1);
+    tableTopMatrix = mult(tableTopMatrix, scalem(3,1,1));
+    //windowHorizontal = mult(windowHorizontal,translate(-.08, -.25, 0));
+
+    // Create a buffer object, initialize it, and associate it with the
+    //load into the GPU
+    var tableBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, tableBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(table_vertices), gl.STATIC_DRAW);
+
+
+    // Associate out shader variables with our data buffer
+    var vPosition = gl.getAttribLocation(program, "vPosition");
+    gl.vertexAttribPointer(vPosition, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(vPosition);
+
+    // Render H4
+    render(tableTopMatrix,table_vertices.length,"triangle_fan");
+
+// create table leg
+var tableLegMatrix = mult(tableTopMatrix,rotate(90,0,0,1));
+tableLegMatrix = mult(tableLegMatrix,translate(-.48,-.15,0));
+tableLegMatrix = mult(tableLegMatrix, scalem(2.5,.5,1));
+var tableLegBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, tableLegBuffer);
+gl.bufferData(gl.ARRAY_BUFFER, flatten(table_vertices), gl.STATIC_DRAW);
+
+
+
+// Associate out shader variables with our data buffer
+var vPosition = gl.getAttribLocation(program, "vPosition");
+gl.vertexAttribPointer(vPosition, 2, gl.FLOAT, false, 0, 0);
+gl.enableVertexAttribArray(vPosition);
+
+// Render table leg
+render(tableLegMatrix,table_vertices.length,"triangle_fan");
+
 }
 
 
-function render(matrix) {
+function render(matrix, n,type) {
 
     //increase theta to rotate shape
     r = 1.0;
-    b = 0.0;
-    g = 1.0;
+    b = 0.5;
+    g = 0.5;
 
 
 
@@ -170,7 +241,14 @@ function render(matrix) {
     // Set the matrix uniform in the shader
     gl.uniformMatrix4fv(matrixLocation, false, flatten(matrix));
     //draw the two H's
-    gl.drawArrays(gl.LINE_STRIP, 0, 5);
+    switch(type){
+        case "line_strip":
+            gl.drawArrays(gl.LINE_STRIP, 0, n);
+            break;
+        case "triangle_fan":
+            gl.drawArrays(gl.TRIANGLE_FAN,0,n)
+    }
+    //gl.drawArrays(gl.LINE_STRIP, 0, n);
 
 
 
