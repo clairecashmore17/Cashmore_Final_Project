@@ -72,7 +72,8 @@ window.onload = function init() {
     ];
     var innerFrameMatrix = mat4();
 
-
+    innerFrameMatrix = scalem(1,1.55,1);
+    innerFrameMatrix = mult(innerFrameMatrix,translate(-.5,.15,0));
     // Create a buffer object, initialize it, and associate it with the
     //load into the GPU
     var bufferIDInnerMatrix = gl.createBuffer();
@@ -93,8 +94,8 @@ window.onload = function init() {
      //Create outer frame
     var outerFrameMatrix = mat4();
     // scale the matrix to upper right
-    outerFrameMatrix = scalem(1.25, 1.25,1);
-   
+    outerFrameMatrix = translate(-.5,.25,0);
+    outerFrameMatrix = mult(outerFrameMatrix,scalem(1.25, 1.75,1));
 
     // Create second buffer for 2nd H
     var bufferOuterFrame = gl.createBuffer();
@@ -115,7 +116,7 @@ window.onload = function init() {
 
     // translate the matrix 
     windowHorizontal = scalem(1,0, 0);
-    windowHorizontal = translate(0,-.3,0);
+    windowHorizontal = mult(windowHorizontal,translate(-.5,-.3,0));
 
 
     // Create a buffer object, initialize it, and associate it with the
@@ -142,8 +143,8 @@ window.onload = function init() {
     // use mult to then rotate after the translation
     // windowHorizontal = scalem(4,0, 0);
     windowHorizontal =  rotate(90, 0, 0, 1);
-    windowHorizontal = mult(windowHorizontal, scalem(1.5,0,0));
-    windowHorizontal = mult(windowHorizontal,translate(-.08, -.25, 0));
+    windowHorizontal = mult(windowHorizontal, scalem(2.3,1,1));
+    windowHorizontal = mult(windowHorizontal,translate(.02, .25, 0));
 
     // Create a buffer object, initialize it, and associate it with the
     //load into the GPU
@@ -183,7 +184,7 @@ window.onload = function init() {
     // windowHorizontal = scalem(4,0, 0);
    // windowHorizontal =  rotate(90, 0, 0, 1);
     tableTopMatrix = mult(tableTopMatrix, scalem(3,1,1));
-    //windowHorizontal = mult(windowHorizontal,translate(-.08, -.25, 0));
+    tableTopMatrix = mult(tableTopMatrix,translate(-.15, -.25, 0));
 
     // Create a buffer object, initialize it, and associate it with the
     //load into the GPU
@@ -202,8 +203,8 @@ window.onload = function init() {
 
 // create table leg
 var tableLegMatrix = mult(tableTopMatrix,rotate(90,0,0,1));
-tableLegMatrix = mult(tableLegMatrix,translate(-.48,-.15,0));
-tableLegMatrix = mult(tableLegMatrix, scalem(2.5,.5,1));
+tableLegMatrix = mult(tableLegMatrix,translate(-.45,-.15,0));
+tableLegMatrix = mult(tableLegMatrix, scalem(2.5,.35,1));
 var tableLegBuffer = gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER, tableLegBuffer);
 gl.bufferData(gl.ARRAY_BUFFER, flatten(table_vertices), gl.STATIC_DRAW);
