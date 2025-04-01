@@ -218,6 +218,77 @@ gl.enableVertexAttribArray(vPosition);
 
 // Render table leg
 render(tableLegMatrix,table_vertices.length,"triangle_fan");
+    
+/***************** END TABLE CODE*****************/
+
+
+
+    /***************** START LAVA LAMP CODE*****************/
+
+    var lampBaseVertices = [
+
+        vec2(0 ,0),
+        vec2(.25, .25),
+        vec2(.5, 0),
+        vec2(0, 0),
+        
+    ]
+
+ //Create tabletop
+ var lampbaseMatrix = mat4();
+
+ // translate the matrix 
+  lampbaseMatrix = translate(0.25, -.5, 0);
+ // use mult to then rotate after the translation
+ 
+ lampbaseMatrix = mult(lampbaseMatrix, scalem(.5,.75,1));
+// lampbaseMatrix = mult(lampbaseMatrix,translate(-.15, -.25, 0));
+
+ // Create a buffer object, initialize it, and associate it with the
+ //load into the GPU
+ var lampBaseBuffer = gl.createBuffer();
+ gl.bindBuffer(gl.ARRAY_BUFFER, lampBaseBuffer);
+ gl.bufferData(gl.ARRAY_BUFFER, flatten(lampBaseVertices), gl.STATIC_DRAW);
+
+
+ // Associate out shader variables with our data buffer
+ var vPosition = gl.getAttribLocation(program, "vPosition");
+ gl.vertexAttribPointer(vPosition, 2, gl.FLOAT, false, 0, 0);
+ gl.enableVertexAttribArray(vPosition);
+
+ // Render H4
+ render(lampbaseMatrix,lampBaseVertices.length,"triangle_fan");
+
+ lampbaseMatrix = mult(lampbaseMatrix,rotate(180,0,0,1));
+ lampbaseMatrix = mult(lampbaseMatrix,translate(-.5,-.25,0));
+ render(lampbaseMatrix,lampBaseVertices.length,"triangle_fan");
+
+
+ // Create lampGlass
+
+ var lampGlassMatrix = mat4();
+
+ // translate the matrix 
+ lampGlassMatrix = translate(0.37, 0.06, 0);
+ // use mult to then rotate after the translation
+ 
+ lampGlassMatrix = mult(lampGlassMatrix, scalem(.4,.75,1));
+// lampbaseMatrix = mult(lampGlassMatrix,translate(-.72, -.25, 0));
+
+ // Create a buffer object, initialize it, and associate it with the
+ //load into the GPU
+ var lampGlassBuffer = gl.createBuffer();
+ gl.bindBuffer(gl.ARRAY_BUFFER, lampGlassBuffer);
+ gl.bufferData(gl.ARRAY_BUFFER, flatten(window_vertices), gl.STATIC_DRAW);
+
+
+ // Associate out shader variables with our data buffer
+ var vPosition = gl.getAttribLocation(program, "vPosition");
+ gl.vertexAttribPointer(vPosition, 2, gl.FLOAT, false, 0, 0);
+ gl.enableVertexAttribArray(vPosition);
+
+ // Render H4
+ render(lampGlassMatrix,window_vertices.length,"line_strip");
 
 }
 
