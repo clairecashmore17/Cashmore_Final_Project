@@ -8,7 +8,7 @@ var gl;
 
 var fColorLocation;
 var matrixLocation;
-
+var colorsArray = [];
 // delay (or n) is the number of frames we load at
 var delay = 10;
 
@@ -36,6 +36,18 @@ window.onload = function init() {
     var program = initShaders(gl, "vertex-shader", "fragment-shader");
     gl.useProgram(program);
 
+
+    var vertexColors = [
+        vec4( 0.0, 0.0, 0.0, 1.0 ),  // black  0
+        vec4( 1.0, 0.0, 0.0, 1.0 ),  // red  1
+        vec4( 1.0, 1.0, 0.0, 1.0 ),  // yellow  2
+        vec4( 0.0, 1.0, 0.0, 1.0 ),  // green  3
+        vec4( 0.0, 0.0, 1.0, 1.0 ),  // blue  4
+        vec4( 1.0, 0.0, 1.0, 1.0 ),  // magenta  5
+        vec4( 0.0, 1.0, 1.0, 1.0 ),  // cyan  6
+        vec4( 1.0, 1.0, 1.0, 1.0 ),  // white  7
+        vec4( 0.6, .39, 0.0, 1.0) // brown  8
+    ];
     //Vertices needed to make H
     var window_vertices = [
         vec2(-.25, .25),
@@ -52,7 +64,16 @@ window.onload = function init() {
     ];
     // Set aside uniform to store the matrix
     matrixLocation = gl.getUniformLocation(program, 'u_matrix');
-    fColorLocation = gl.getUniformLocation(program, "fColor");
+    colorsArray =  [vertexColors[0],vertexColors[0], vertexColors[0],vertexColors[0],vertexColors[0]];
+
+
+    var cBuffer = gl.createBuffer();
+    gl.bindBuffer( gl.ARRAY_BUFFER, cBuffer );
+    gl.bufferData( gl.ARRAY_BUFFER, flatten(colorsArray), gl.STATIC_DRAW );
+
+    var vColor = gl.getAttribLocation( program, "vColor" );
+    gl.vertexAttribPointer( vColor, 4, gl.FLOAT, false, 0, 0 );
+    gl.enableVertexAttribArray( vColor);
     
     
     /*********************** Create Window ***********************/
@@ -75,6 +96,11 @@ window.onload = function init() {
     innerFrameMatrix = scalem(1,1.55,1);
     innerFrameMatrix = mult(innerFrameMatrix,translate(-.5,.15,0));
     // Create a buffer object, initialize it, and associate it with the
+    gl.clearColor(1.0, 1.0, 1.0, 1.0);
+
+
+    
+
     //load into the GPU
     var bufferIDInnerMatrix = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, bufferIDInnerMatrix);
@@ -173,8 +199,20 @@ window.onload = function init() {
         vec2(.25, .15),
         vec2(0, .15),
         vec2(0, .25),
-    ];
+    ]; 
+    
+    //Set table color
+    colorsArray =  [vertexColors[8],vertexColors[8], vertexColors[8],vertexColors[8],vertexColors[8]];
 
+
+    var cBuffer2 = gl.createBuffer();
+    gl.bindBuffer( gl.ARRAY_BUFFER, cBuffer2 );
+    gl.bufferData( gl.ARRAY_BUFFER, flatten(colorsArray), gl.STATIC_DRAW );
+
+    var vColor = gl.getAttribLocation( program, "vColor" );
+    gl.vertexAttribPointer( vColor, 4, gl.FLOAT, false, 0, 0 );
+    gl.enableVertexAttribArray( vColor);
+    
     //Create tabletop
     var tableTopMatrix = mat4();
 
@@ -234,7 +272,19 @@ render(tableLegMatrix,table_vertices.length,"triangle_fan");
         
     ]
 
- //Create tabletop
+//Lamp Base Color
+  colorsArray =  [vertexColors[0],vertexColors[0], vertexColors[0],vertexColors[0],vertexColors[0]];
+
+
+  var cBuffer3 = gl.createBuffer();
+  gl.bindBuffer( gl.ARRAY_BUFFER, cBuffer3 );
+  gl.bufferData( gl.ARRAY_BUFFER, flatten(colorsArray), gl.STATIC_DRAW );
+
+  var vColor = gl.getAttribLocation( program, "vColor" );
+  gl.vertexAttribPointer( vColor, 4, gl.FLOAT, false, 0, 0 );
+  gl.enableVertexAttribArray( vColor);
+
+ //Create lamp Base
  var lampbaseMatrix = mat4();
 
  // translate the matrix 
@@ -263,6 +313,20 @@ render(tableLegMatrix,table_vertices.length,"triangle_fan");
  lampbaseMatrix = mult(lampbaseMatrix,translate(-.5,-.25,0));
  render(lampbaseMatrix,lampBaseVertices.length,"triangle_fan");
 
+
+
+// Lamp Glass colors
+//Lamp Base Color
+colorsArray =  [vertexColors[5],vertexColors[5], vertexColors[5],vertexColors[5],vertexColors[5]];
+
+
+var cBuffer4 = gl.createBuffer();
+gl.bindBuffer( gl.ARRAY_BUFFER, cBuffer4 );
+gl.bufferData( gl.ARRAY_BUFFER, flatten(colorsArray), gl.STATIC_DRAW );
+
+var vColor = gl.getAttribLocation( program, "vColor" );
+gl.vertexAttribPointer( vColor, 4, gl.FLOAT, false, 0, 0 );
+gl.enableVertexAttribArray( vColor);
 
  // Create lampGlass
 
@@ -293,22 +357,13 @@ render(tableLegMatrix,table_vertices.length,"triangle_fan");
 }
 
 
-function render(matrix, n,type) {
-
+function render(matrix, n,type,) {
+    //gl.clear( gl.COLOR_BUFFER_BIT );
     //increase theta to rotate shape
-    r = 1.0;
-    b = 0.5;
-    g = 0.5;
+  
 
+    //gl.clear( gl.COLOR_BUFFER_BIT );
 
-
-
-
-    // send uniform value to vertex shader
-    // console.log(theta);
-
-    //send uniform value to fragment shader
-    gl.uniform4f(fColorLocation, r, b, g, 1.0);
 
     // Set the matrix uniform in the shader
     gl.uniformMatrix4fv(matrixLocation, false, flatten(matrix));
