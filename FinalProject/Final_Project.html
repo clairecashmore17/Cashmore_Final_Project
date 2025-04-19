@@ -1,21 +1,62 @@
 <!DOCTYPE html>
 <html>
     <button id = "Button1">Toggle night</button> 
+    Night <input id="timeSlider" type="range"
+ min="0" max="1" step=".01" value="1" />
+ Day
+</div>
 <head>
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
 <title>Claire Final Project</title>
 
 <script id="vertex-shader" type="x-shader/x-vertex">
  attribute vec4 vPosition;
- uniform mat4 u_matrix;
+ uniform mat4 modelViewMatrix;
  varying vec4 fColor;
  attribute  vec4 vColor;
-void
-main()
+ attribute  vec3 vNormal;
+
+ uniform vec4 ambientProduct, diffuseProduct, specularProduct;
+ uniform vec4 lightPosition;
+ uniform float shininess;
+
+
+void main()
 {
     
-    gl_Position = u_matrix* vPosition;
-    fColor = vColor;
+    vec3 pos = -(modelViewMatrix * vPosition).xyz;
+    
+    //fixed light postion
+    
+    vec3 light = lightPosition.xyz;
+    vec3 L = normalize( light - pos );
+
+	
+    vec3 E = normalize( -pos );
+    vec3 H = normalize( L + E );
+    
+    vec4 NN = vec4(vNormal,0);
+
+    // Transform vertex normal into eye coordinates
+       
+    vec3 N = normalize( (modelViewMatrix*NN).xyz);
+
+    // Compute terms in the illumination equation
+    vec4 ambient = ambientProduct;
+
+    float Kd = max( dot(L, N), 0.0 );
+    vec4  diffuse = Kd*diffuseProduct;
+
+    float Ks = pow( max(dot(N, H), 0.0), shininess );
+    vec4  specular = Ks * specularProduct;
+    
+    if( dot(L, N) < 0.0 ) {
+	specular = vec4(0.0, 0.0, 0.0, 1.0);
+    } 
+
+    
+    gl_Position = modelViewMatrix* vPosition;
+    fColor =  vColor *(ambient + diffuse +specular);
 
 } 
 </script>
