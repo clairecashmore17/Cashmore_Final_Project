@@ -38,6 +38,8 @@ var cBuffer;
 // Time corresponds to the time of day that we traverse using a slider, but is associated with values 0-1 for lighting.
 var time = 1;
 
+var particle_path = 0.1;
+
 /************* End Initialize Variables ***************/
 
 
@@ -396,8 +398,23 @@ function update(vColor, vPosition, program, time) {
         vec2(-.05, 0),
     ];
     var particle_matrix = mat4();
-
     particle_matrix = mult(particle_matrix, lampGlassMatrix);
+
+    //attempt to move particle around once its gets darker
+    if (time < .05){
+           
+        if(count>3){
+            particle_matrix = mult(particle_matrix, translate(0,particle_path,0,1));
+            //update(vColor, vPosition, program, time);
+        }
+        else{
+            particle_matrix = mult(particle_matrix, translate(0,-particle_path,0,1));
+            //(vColor, vPosition, program, time);
+        }
+        count++;
+        
+    }
+    
 
     positionBuffer(bufferID, particle_vertices, vPosition);
     // Render little particle
