@@ -2,7 +2,7 @@
 <html>
     
     Night <input id="timeSlider" type="range"
- min=".2" max="1" step=".01" value="1" />
+ min=".5" max="1" step=".005" value="1" />
  Day
 </div>
 <head>
@@ -15,11 +15,12 @@
  varying vec4 fColor;
  attribute  vec4 vColor;
  attribute  vec3 vNormal;
+ attribute vec2 a_texcoord;
 
  uniform vec4 ambientProduct, diffuseProduct, specularProduct;
  uniform vec4 lightPosition;
  uniform float shininess;
-
+ varying vec2 v_texcoord;
 
 void main()
 {
@@ -57,22 +58,46 @@ void main()
     
     gl_Position = modelViewMatrix* vPosition;
     fColor =  vColor *(ambient + diffuse +specular);
-
+    v_texcoord = a_texcoord;
 } 
 </script>
 
 <script id="fragment-shader" type="x-shader/x-fragment">
  precision mediump float;
  varying vec4 fColor;
- 
+ varying vec2 v_texcoord;
+ uniform sampler2D u_texture;
 void
 main()
 {
     
-    gl_FragColor = fColor;
+    gl_FragColor = fColor ;
 } 
 </script>
+<script id="texture-vertex-shader" type="x-shader/x-vertex">
+   
+    attribute vec4 aVertexPosition;
+    attribute vec2 a_texcoord;
 
+    attribute vec4 vPosition;
+    uniform mat4 modelViewMatrix;
+
+    varying highp vec2 v_texcoord;
+
+    void main(void) {
+        gl_Position = modelViewMatrix* vPosition;
+        v_texcoord = a_texcoord;
+    }
+   </script>
+   <script id="texture-fragment-shader" type="x-shader/x-fragment">
+    varying highp vec2 v_texcoord;
+    uniform sampler2D u_texture;
+    
+
+    void main(void) {
+        gl_FragColor = texture2D(u_texture, v_texcoord);
+    }
+   </script>
 <script type="text/javascript" src="../Common/webgl-utils.js"></script>
 <script type="text/javascript" src="../Common/initShaders.js"></script>
 <script type="text/javascript" src="../Common/MV.js"></script>

@@ -33,6 +33,7 @@ var colorsArray = [];
 
 var bufferID;
 var cBuffer;
+var textBuffer;
 
 
 // Time corresponds to the time of day that we traverse using a slider, but is associated with values 0-1 for lighting.
@@ -68,16 +69,37 @@ function positionBuffer(positionBuffer, vertices, vPosition) {
     gl.enableVertexAttribArray(vPosition);
 
 };
+// Fill the buffer with texture coordinates for the F.
+function setTexcoords(gl, coordinates) {
+    gl.bufferData(
+        gl.ARRAY_BUFFER,
+        flatten(coordinates),
+        gl.STATIC_DRAW);
+}
+
+function textureBuffer(textBuffer,texcoordLocation, vertices, vPosition) {
+    // Create a buffer for texcoords.
+   
+    gl.bindBuffer(gl.ARRAY_BUFFER, textBuffer);
+    gl.enableVertexAttribArray(texcoordLocation);
+
+    // We'll supply texcoords as floats.
+    gl.vertexAttribPointer(texcoordLocation, 2, gl.FLOAT, false, 0, 0);
+
+    // Set Texcoords.
+    setTexcoords(gl,vertices,vPosition);
+
+}
 
 //Run this once the page has loaded
 window.onload = function init() {
-   
+
     // Time slider to depict what time of day it is.
     document.getElementById("timeSlider").onchange = function (event) {
         time = event.target.value;
-        update(vColor, vPosition, program, time);
+        update(vColor, vPosition, program, time, texcoordLocation,positionLocation);
     };
-    
+
     //Draw canvas
     canvas = document.getElementById("gl-canvas");
 
@@ -90,10 +112,14 @@ window.onload = function init() {
 
     //  Load shaders and initialize attribute buffers
     var program = initShaders(gl, "vertex-shader", "fragment-shader");
+    //var program2 = initShaders(gl, "texture-vertex-shader", "texture-fragment-shader");
     gl.useProgram(program);
+    //gl.useProgram(program2);
 
     var vColor = gl.getAttribLocation(program, "vColor");
     var vPosition = gl.getAttribLocation(program, "vPosition");
+    var positionLocation = gl.getAttribLocation(program, "a_position");;
+    var texcoordLocation = gl.getAttribLocation(program, "a_texcoord");
 
 
     // Calculate the product for lighting
@@ -114,9 +140,25 @@ window.onload = function init() {
     gl.uniform1f(gl.getUniformLocation(program,
         "shininess"), materialShininess);
 
+    // Create a texture.
+    var texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
 
+    // Fill the texture with a 1x1 blue pixel.
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+        new Uint8Array([0, 0, 255, 255]));
+
+    // Asynchronously load an image
+    var image = new Image();
+    image.src = "ParquetFlooring08_4K_Roughness.png";
+    image.addEventListener('load', function () {
+        // Now that the image has loaded make copy it to the texture.
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+        gl.generateMipmap(gl.TEXTURE_2D);
+    });
     //Update will trigger a render and update any changed values. Passing it the vColor, vPosition, program, and time variables so we can manipulate them.    
-    update(vColor, vPosition, program, time);
+    update(vColor, vPosition, program, time, texcoordLocation,positionLocation);
 
 }
 
@@ -136,7 +178,7 @@ function render(matrix, n, type) {
     }
 
 
-    
+
 
 
 
@@ -144,16 +186,17 @@ function render(matrix, n, type) {
 
 
 // Method to update what is being sent to screen.
-function update(vColor, vPosition, program, time) {
+function update(vColor, vPosition, program, time, texcoordLocation,positionLocation) {
+
 
     // Set lighting based on time
-    lightAmbient = vec4(time, time, time, 1.0);
+    lightAmbient = vec4(time*2, time*2, time*2, 1.0);
     // Calculate the product for lighting
     var ambientProduct = mult(lightAmbient, materialAmbient);
     var diffuseProduct = mult(lightDiffuse, materialDiffuse);
     var specularProduct = mult(lightSpecular, materialSpecular);
 
-// Uniforms for lighting
+    // Uniforms for lighting
     gl.uniform4fv(gl.getUniformLocation(program, "ambientProduct"),
         flatten(ambientProduct));
     gl.uniform4fv(gl.getUniformLocation(program, "diffuseProduct"),
@@ -167,8 +210,8 @@ function update(vColor, vPosition, program, time) {
         "shininess"), materialShininess);
 
     console.log(time);
-    
-    
+
+
     /********** Create Window  ****************/
 
     //Vertices for the original inner frame
@@ -180,14 +223,22 @@ function update(vColor, vPosition, program, time) {
         vec2(-.25, .25),
     ];
 
- 
 
 
+    var texture_vertices = [
+        vec2(-.25, .25),
+        vec2(.25, .25),
+        vec2(.25, -.5),
+        vec2(-.25, -.5),
+        vec2(-.25, .25),
+    ];
 
 
     // Set aside uniform to store the matrix
     matrixLocation = gl.getUniformLocation(program, 'modelViewMatrix');
     colorsArray = [vertexColors[0], vertexColors[0], vertexColors[0], vertexColors[0], vertexColors[0]];
+
+
 
     // Set color for the shapes (black)
     cBuffer = gl.createBuffer();
@@ -199,7 +250,7 @@ function update(vColor, vPosition, program, time) {
         vec2(-.25, .25),
         vec2(.25, .25)
     ];
-    
+
     //Create matrix for inner frame
     var innerFrameMatrix = mat4();
 
@@ -210,22 +261,20 @@ function update(vColor, vPosition, program, time) {
 
     // Set the color to blue
     colorBuffer(cBuffer, 4, vColor);
-    
+
 
 
     //load into the GPU
     bufferID = gl.createBuffer();
     positionBuffer(bufferID, window_vertices, vPosition);
+  //  textBuffer = gl.createBuffer();
+   // textureBuffer(textBuffer,texcoordLocation,texture_vertices,vPosition);
 
+  
 
-    // Render Inner frame
-    render(innerFrameMatrix, window_vertices.length, "triangle_fan");
-
-    
+  
     // Back to black for color buffer
     colorBuffer(cBuffer, 0, vColor);
-
-
 
 
     //Create outer frame
@@ -233,14 +282,22 @@ function update(vColor, vPosition, program, time) {
     // scale the matrix and move to upper right
     outerFrameMatrix = translate(-.5, .25, 0);
     outerFrameMatrix = mult(outerFrameMatrix, scalem(1.25, 1.75, 1));
-
+   
     // add outer frame to buffer
     positionBuffer(bufferID, window_vertices, vPosition);
-
-
+    
     // Render Outer Frame
-    render(outerFrameMatrix, window_vertices.length, "line_strip");
+    render(outerFrameMatrix, window_vertices.length, "triangle_fan");
+    
 
+        // Set the color to blue
+        colorBuffer(cBuffer, 4, vColor);
+    // Render Inner frame
+    render(innerFrameMatrix, window_vertices.length, "triangle_fan");
+
+  
+    // Back to black for color buffer
+    colorBuffer(cBuffer, 0, vColor);
 
     //Create Window lines
     var windowHorizontal = mat4();
@@ -262,7 +319,7 @@ function update(vColor, vPosition, program, time) {
     windowHorizontal = mult(windowHorizontal, scalem(2.3, 1, 1));
     windowHorizontal = mult(windowHorizontal, translate(.02, .25, 0));
 
-   
+
 
 
     // Render vertizal lines
@@ -296,6 +353,8 @@ function update(vColor, vPosition, program, time) {
     // Create a buffer object, initialize it, and associate it with the
     //load into the GPU
     positionBuffer(bufferID, table_vertices, vPosition);
+    
+   
 
     // Render Table top
     render(tableTopMatrix, table_vertices.length, "triangle_fan");
@@ -308,10 +367,10 @@ function update(vColor, vPosition, program, time) {
 
     // Render table leg
     render(tableLegMatrix, table_vertices.length, "triangle_fan");
-    
+
     // create right table leg
     var tableRightLegMatrix = mult(tableLegMatrix, translate(0, -0.35, 0, 1));
-   
+
 
 
     // Render table leg
@@ -321,9 +380,9 @@ function update(vColor, vPosition, program, time) {
 
 
 
-    /***************** START LAVA LAMP CODE*****************/
+     /***************** START LAVA LAMP CODE*****************/
 
-    var lampBaseVertices = [
+     var lampBaseVertices = [
 
         vec2(0, 0),
         vec2(.25, .25),
@@ -422,4 +481,28 @@ function update(vColor, vPosition, program, time) {
 
 
     /********* END LAVA LAMP *****************/
+
+    /*********** Stars Start **********/
+    
+    // star vertices
+    var star_vertices = [
+        vec2(-.05, 0),
+        vec2(0, 0),
+        vec2(0, -.05),
+        vec2(-.05, -.05),
+        vec2(-.05, 0),
+    ];
+    var star_matrix = mat4();
+
+    star_matrix = translate(-.5,.5,0);
+    positionBuffer(bufferID, star_vertices, vPosition);
+
+      // Lamp Glass colors (magenta)
+      colorBuffer(cBuffer, 2, vColor);
+    if(time < .7){
+       
+    // Render little particle
+    render(star_matrix, star_vertices.length, "triangle_fan");
+    } 
+    
 }
