@@ -7,7 +7,7 @@ var matrixLocation;
 var vertexColors = [
     vec4(0.0, 0.0, 0.0, 1.0),  // black  0
     vec4(1.0, 0.0, 0.0, 1.0),  // red  1
-    vec4(1.0, 1.0, 0.0, 1.0),  // yellow  2
+    vec4(1, 1, 0.1, 1.0 ),  // yellow  2
     vec4(0.0, 1.0, 0.0, 1.0),  // green  3
     vec4(0.0, 0.0, 1.0, 1.0),  // blue  4
     vec4(1.0, 0.0, 1.0, 1.0),  // magenta  5
@@ -22,12 +22,12 @@ var vertexColors = [
 var lightPosition = vec4(1.0, 1.0, 1.0, 0.0);
 var lightAmbient = vec4(0.9, 0.9, 0.9, 1.0);
 var lightDiffuse = vec4(0, 0, 0, 0);
-var lightSpecular = vec4(1.0, 1.0, 1.0, 1.0);
+var lightSpecular = vec4(0, 0, 0, 0);
 
 var materialAmbient = vec4(1.0, 0.0, 1.0, 1.0);
-var materialDiffuse = vec4(1.0, 0.8, 0.0, 1.0);
-var materialSpecular = vec4(1.0, 0.8, 0.0, 1.0);
-var materialShininess = 100.0;
+var materialDiffuse = vec4(0.0, 0.0, 0.0, 0.0);
+var materialSpecular = vec4(0.0, 0.0, 0.0, 1.0);
+var materialShininess = 1.0;
 
 var colorsArray = [];
 
@@ -71,13 +71,13 @@ function positionBuffer(positionBuffer, vertices, vPosition) {
 
 //Run this once the page has loaded
 window.onload = function init() {
-   
+
     // Time slider to depict what time of day it is.
     document.getElementById("timeSlider").onchange = function (event) {
         time = event.target.value;
         update(vColor, vPosition, program, time);
     };
-    
+
     //Draw canvas
     canvas = document.getElementById("gl-canvas");
 
@@ -136,7 +136,7 @@ function render(matrix, n, type) {
     }
 
 
-    
+
 
 
 
@@ -153,7 +153,7 @@ function update(vColor, vPosition, program, time) {
     var diffuseProduct = mult(lightDiffuse, materialDiffuse);
     var specularProduct = mult(lightSpecular, materialSpecular);
 
-// Uniforms for lighting
+    // Uniforms for lighting
     gl.uniform4fv(gl.getUniformLocation(program, "ambientProduct"),
         flatten(ambientProduct));
     gl.uniform4fv(gl.getUniformLocation(program, "diffuseProduct"),
@@ -167,8 +167,8 @@ function update(vColor, vPosition, program, time) {
         "shininess"), materialShininess);
 
     console.log(time);
-    
-    
+
+
     /********** Create Window  ****************/
 
     //Vertices for the original inner frame
@@ -180,7 +180,7 @@ function update(vColor, vPosition, program, time) {
         vec2(-.25, .25),
     ];
 
- 
+
 
 
 
@@ -199,7 +199,7 @@ function update(vColor, vPosition, program, time) {
         vec2(-.25, .25),
         vec2(.25, .25)
     ];
-    
+
     //Create matrix for inner frame
     var innerFrameMatrix = mat4();
 
@@ -208,9 +208,8 @@ function update(vColor, vPosition, program, time) {
     // Create a buffer object, initialize it, and associate it with the
     gl.clearColor(1.0, 1.0, 1.0, 1.0);
 
-    // Set the color to blue
-    colorBuffer(cBuffer, 4, vColor);
-    
+
+
 
 
     //load into the GPU
@@ -218,14 +217,8 @@ function update(vColor, vPosition, program, time) {
     positionBuffer(bufferID, window_vertices, vPosition);
 
 
-    // Render Inner frame
-    render(innerFrameMatrix, window_vertices.length, "triangle_fan");
-
-    
     // Back to black for color buffer
     colorBuffer(cBuffer, 0, vColor);
-
-
 
 
     //Create outer frame
@@ -237,11 +230,18 @@ function update(vColor, vPosition, program, time) {
     // add outer frame to buffer
     positionBuffer(bufferID, window_vertices, vPosition);
 
-
     // Render Outer Frame
-    render(outerFrameMatrix, window_vertices.length, "line_strip");
+    render(outerFrameMatrix, window_vertices.length, "triangle_fan");
 
 
+    // Set the color to blue
+    colorBuffer(cBuffer, 4, vColor);
+    // Render Inner frame
+    render(innerFrameMatrix, window_vertices.length, "triangle_fan");
+
+
+    // Back to black for color buffer
+    colorBuffer(cBuffer, 0, vColor);
     //Create Window lines
     var windowHorizontal = mat4();
 
@@ -262,7 +262,7 @@ function update(vColor, vPosition, program, time) {
     windowHorizontal = mult(windowHorizontal, scalem(2.3, 1, 1));
     windowHorizontal = mult(windowHorizontal, translate(.02, .25, 0));
 
-   
+
 
 
     // Render vertizal lines
@@ -308,10 +308,10 @@ function update(vColor, vPosition, program, time) {
 
     // Render table leg
     render(tableLegMatrix, table_vertices.length, "triangle_fan");
-    
+
     // create right table leg
     var tableRightLegMatrix = mult(tableLegMatrix, translate(0, -0.35, 0, 1));
-   
+
 
 
     // Render table leg
@@ -340,7 +340,8 @@ function update(vColor, vPosition, program, time) {
 
     gl.uniform4fv(gl.getUniformLocation(program, "ambientProduct"),
         flatten(ambientProduct));
-    colorBuffer(cBuffer, 0, vColor);
+
+    colorBuffer(cBuffer, 5, vColor);
 
 
     gl.vertexAttribPointer(vColor, 4, gl.FLOAT, false, 0, 0);
@@ -348,13 +349,13 @@ function update(vColor, vPosition, program, time) {
 
     //Create lamp Base
     var lampbaseMatrix = mat4();
-
+    var topLampMatrix = lampbaseMatrix;
     // translate the matrix 
     lampbaseMatrix = translate(0.25, -.5, 0);
-   
+
     //scale
     lampbaseMatrix = mult(lampbaseMatrix, scalem(.5, .75, 1));
-   
+
 
     // Create a buffer object, initialize it, and associate it with the
     //load into the GPU
@@ -370,6 +371,10 @@ function update(vColor, vPosition, program, time) {
     lampbaseMatrix = mult(lampbaseMatrix, translate(-.5, -.25, 0));
     render(lampbaseMatrix, lampBaseVertices.length, "triangle_fan");
 
+    //Render top of lamp
+    topLampMatrix = mult(scalem(.5, 1,1),translate(0.48,.25,0));
+    render(topLampMatrix, lampBaseVertices.length, "triangle_fan");
+
     // Lamp Glass colors (magenta)
     colorBuffer(cBuffer, 5, vColor);
 
@@ -379,7 +384,7 @@ function update(vColor, vPosition, program, time) {
 
     // translate the matrix 
     lampGlassMatrix = translate(0.37, 0.06, 0);
-    
+
     // scale to look better
     lampGlassMatrix = mult(lampGlassMatrix, scalem(.4, .75, 1));
 
@@ -400,26 +405,37 @@ function update(vColor, vPosition, program, time) {
     var particle_matrix = mat4();
     particle_matrix = mult(particle_matrix, lampGlassMatrix);
 
-    //attempt to move particle around once its gets darker
-    if (time < .05){
-           
-        if(count>3){
-            particle_matrix = mult(particle_matrix, translate(0,particle_path,0,1));
-            //update(vColor, vPosition, program, time);
-        }
-        else{
-            particle_matrix = mult(particle_matrix, translate(0,-particle_path,0,1));
-            //(vColor, vPosition, program, time);
-        }
-        count++;
-        
-    }
-    
-
+   
+    // set particle color (yellow)
+    colorBuffer(cBuffer, 2, vColor);
     positionBuffer(bufferID, particle_vertices, vPosition);
     // Render little particle
     render(particle_matrix, particle_vertices.length, "triangle_fan");
 
 
     /********* END LAVA LAMP *****************/
+    /*********** Stars Start **********/
+    colorBuffer(cBuffer, 8, vColor);
+    // star vertices
+    var star_vertices = [
+        vec2(-.05, -.1),
+        vec2(-.1, -.1),
+        vec2(-.1, -.05),
+        vec2(-.05, -.05),
+        vec2(-.05, -.1),
+    ];
+    var star_matrix = mat4();
+
+    star_matrix = translate(-.5, -.75, 0);
+    star_matrix = mult(star_matrix, scalem(.2, .5, 1))
+   
+    positionBuffer(bufferID, star_vertices, vPosition);
+  
+    // star colors (magenta)
+   
+    // if (time < .7) {
+
+        // Render little particle
+        render(star_matrix, star_vertices.length, "triangle_fan");
+    // }
 }
