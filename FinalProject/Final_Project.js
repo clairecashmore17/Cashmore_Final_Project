@@ -37,6 +37,7 @@ var cBuffer;
 
 // Time corresponds to the time of day that we traverse using a slider, but is associated with values 0-1 for lighting.
 var time = 1;
+var num_stars = 1;
 
 var particle_path = 0.1;
 
@@ -75,7 +76,12 @@ window.onload = function init() {
     // Time slider to depict what time of day it is.
     document.getElementById("timeSlider").onchange = function (event) {
         time = event.target.value;
-        update(vColor, vPosition, program, time);
+        update(vColor, vPosition, program, time,num_stars);
+    };
+      // Time slider to depict what time of day it is.
+      document.getElementById("num_stars").onchange = function (event) {
+        num_stars = event.target.value;
+        update(vColor, vPosition, program, time,num_stars);
     };
 
     //Draw canvas
@@ -116,7 +122,7 @@ window.onload = function init() {
 
 
     //Update will trigger a render and update any changed values. Passing it the vColor, vPosition, program, and time variables so we can manipulate them.    
-    update(vColor, vPosition, program, time);
+    update(vColor, vPosition, program, time,num_stars);
 
 }
 
@@ -144,7 +150,7 @@ function render(matrix, n, type) {
 
 
 // Method to update what is being sent to screen.
-function update(vColor, vPosition, program, time) {
+function update(vColor, vPosition, program, time,num_stars) {
 
     // Set lighting based on time
     lightAmbient = vec4(time, time, time, 1.0);
@@ -166,7 +172,7 @@ function update(vColor, vPosition, program, time) {
     gl.uniform1f(gl.getUniformLocation(program,
         "shininess"), materialShininess);
 
-    console.log(time);
+    //console.log(time);
 
 
     /********** Create Window  ****************/
@@ -414,6 +420,7 @@ function update(vColor, vPosition, program, time) {
 
 
     /********* END LAVA LAMP *****************/
+    
     /*********** Stars Start **********/
     colorBuffer(cBuffer, 8, vColor);
     // star vertices
@@ -426,16 +433,37 @@ function update(vColor, vPosition, program, time) {
     ];
     var star_matrix = mat4();
 
-    star_matrix = translate(-.5, -.75, 0);
-    star_matrix = mult(star_matrix, scalem(.2, .5, 1))
+    star_matrix = translate(-.65, .4, 0);
+    star_matrix = mult(star_matrix, scalem(.2, -.5, 1))
+ 
+
+    //Vars to move star matrix for rendering
+    var x = 0.25;
+    var y = .15;
+
+
+    for(var i=0; i<num_stars; i++){
    
+    if(i%2 == 0){
+        
+        y = -y;
+    }
+    else{
+        y= -1 * y;
+    }
+   
+        star_matrix = mult(star_matrix, translate(x, y, 0));
+        //star_matrix = mult(star_matrix, scalem(.2, -.5, 1))
+    
     positionBuffer(bufferID, star_vertices, vPosition);
   
-    // star colors (magenta)
-   
-    // if (time < .7) {
 
-        // Render little particle
+   // If night time
+    if (time < .7) {
+
+        // Render little star
+        
         render(star_matrix, star_vertices.length, "triangle_fan");
-    // }
+    }
+}
 }
